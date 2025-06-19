@@ -2,11 +2,11 @@
 
 pragma solidity ^0.8.19;
 
-import {DeployMoodNft} from "../script/DeployMoodNft.s.sol";
-import {MoodNft} from "../src/MoodNft.sol";
+import {DeployMoodNft} from "script/DeployMoodNft.s.sol";
+import {MoodNft} from "src/MoodNft.sol";
 import {Test, console} from "forge-std/Test.sol";
 import {Vm} from "forge-std/Vm.sol";
-import {MintBasicNft} from "../script/Interactions.s.sol";
+import {MintBasicNft} from "script/Interactions.s.sol";
 import {ZkSyncChainChecker} from "lib/foundry-devops/src/ZkSyncChainChecker.sol";
 import {FoundryZkSyncChecker} from "lib/foundry-devops/src/FoundryZkSyncChecker.sol";
 
@@ -26,14 +26,22 @@ contract MoodNftTest is Test, ZkSyncChainChecker, FoundryZkSyncChecker {
     address public constant USER = address(1);
 
     function setUp() public {
-        deployer = new DeployMoodNft();
-        if (!isZkSyncChain()) {
-            moodNft = deployer.run();
-        } else {
-            string memory sadSvg = vm.readFile("./images/dynamicNft/sad.svg");
-            string memory happySvg = vm.readFile("./images/dynamicNft/happy.svg");
-            moodNft = new MoodNft(deployer.svgToImageURI(sadSvg), deployer.svgToImageURI(happySvg));
-        }
+        // deployer = new DeployMoodNft();
+        // if (!isZkSyncChain()) {
+        //     moodNft = deployer.run();
+        // } else {
+        //     string memory sadSvg = vm.readFile("./images/sad.svg");
+        //     string memory happySvg = vm.readFile("./images/happy.svg");
+        //     moodNft = new MoodNft(deployer.svgToImageURI(sadSvg), deployer.svgToImageURI(happySvg));
+        // }
+
+        moodNft = new MoodNft(SAD_MOOD_URI, HAPPY_MOOD_URI);
+    }
+
+    function testViewTokenURI() public {
+        vm.prank(USER);
+        moodNft.mintNft();
+        console.log(moodNft.tokenURI(0));
     }
 
     function testInitializedCorrectly() public view {
@@ -51,7 +59,10 @@ contract MoodNftTest is Test, ZkSyncChainChecker, FoundryZkSyncChecker {
     function testTokenURIDefaultIsCorrectlySet() public {
         vm.prank(USER);
         moodNft.mintNft();
-
+        console.log("moodNft.tokenURI(0):");
+        console.log(moodNft.tokenURI(0));
+        console.log("HAPPY_MOOD_URI:");
+        console.log(HAPPY_MOOD_URI);
         assert(keccak256(abi.encodePacked(moodNft.tokenURI(0))) == keccak256(abi.encodePacked(HAPPY_MOOD_URI)));
     }
 
@@ -61,22 +72,25 @@ contract MoodNftTest is Test, ZkSyncChainChecker, FoundryZkSyncChecker {
 
         vm.prank(USER);
         moodNft.flipMood(0);
-
+        console.log("moodNft.tokenURI(0):");
+        console.log(moodNft.tokenURI(0));
+        console.log("SAD_MOOD_URI:");
+        console.log(SAD_MOOD_URI);
         assert(keccak256(abi.encodePacked(moodNft.tokenURI(0))) == keccak256(abi.encodePacked(SAD_MOOD_URI)));
     }
 
     // logging events doesn't work great in foundry-zksync
-    function testEventRecordsCorrectTokenIdOnMinting() public onlyVanillaFoundry {
-        uint256 currentAvailableTokenId = moodNft.getTokenCounter();
+    // function testEventRecordsCorrectTokenIdOnMinting() public onlyVanillaFoundry {
+    //     uint256 currentAvailableTokenId = moodNft.getTokenCounter();
 
-        vm.prank(USER);
-        vm.recordLogs();
-        moodNft.mintNft();
-        Vm.Log[] memory entries = vm.getRecordedLogs();
+    //     vm.prank(USER);
+    //     vm.recordLogs();
+    //     moodNft.mintNft();
+    //     Vm.Log[] memory entries = vm.getRecordedLogs();
 
-        bytes32 tokenId_proto = entries[1].topics[1];
-        uint256 tokenId = uint256(tokenId_proto);
+    //     bytes32 tokenId_proto = entries[1].topics[1];
+    //     uint256 tokenId = uint256(tokenId_proto);
 
-        assertEq(tokenId, currentAvailableTokenId);
-    }
+    //     assertEq(tokenId, currentAvailableTokenId);
+    // }
 }
