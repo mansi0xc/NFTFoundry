@@ -26,16 +26,16 @@ contract MoodNftTest is Test, ZkSyncChainChecker, FoundryZkSyncChecker {
     address public constant USER = address(1);
 
     function setUp() public {
-        // deployer = new DeployMoodNft();
-        // if (!isZkSyncChain()) {
-        //     moodNft = deployer.run();
-        // } else {
-        //     string memory sadSvg = vm.readFile("./images/sad.svg");
-        //     string memory happySvg = vm.readFile("./images/happy.svg");
-        //     moodNft = new MoodNft(deployer.svgToImageURI(sadSvg), deployer.svgToImageURI(happySvg));
-        // }
+        deployer = new DeployMoodNft();
+        if (!isZkSyncChain()) {
+            moodNft = deployer.run();
+        } else {
+            string memory sadSvg = vm.readFile("images/sad.svg");
+            string memory happySvg = vm.readFile("images/happy.svg");
+            moodNft = new MoodNft(deployer.svgToImageURI(sadSvg), deployer.svgToImageURI(happySvg));
+        }
 
-        moodNft = new MoodNft(SAD_MOOD_URI, HAPPY_MOOD_URI);
+        //moodNft = new MoodNft(SAD_MOOD_URI, HAPPY_MOOD_URI);
     }
 
     function testViewTokenURI() public {
